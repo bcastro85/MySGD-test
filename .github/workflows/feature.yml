@@ -23,11 +23,12 @@ jobs:
     # Runs a single command using the runners shell
     - name: 'Build and Deploy'
       run: |
-        export CLIURL=https://developer.salesforce.com/media/salesforce-cli/sfdx-linux-amd64.tar.xz
-        mkdir sfdx
-        wget -qO- $CLIURL | tar xJ -C sfdx --strip-components 1
-        ./sfdx/install
-        export PATH=./sfdx/$(pwd):$PATH
+        wget https://developer.salesforce.com/media/salesforce-cli/sfdx/channels/stable/sfdx-linux-x64.tar.xz
+        sudo mkdir ~/sfdx-cli
+        sudo tar xJf sfdx-linux-x64.tar.xz -C ~/sfdx-cli --strip-components 1
+        export PATH=$PATH:~/sfdx-cli/bin
+        echo "~/sfdx-cli/bin" >> $GITHUB_PATH
+        sudo chmod -R 777 ~/sfdx-cli
         sfdx --version
  # Runs a set of commands using the runners shell
     - name: 'Decrypt file'
