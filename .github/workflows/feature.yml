@@ -31,8 +31,8 @@ jobs:
     - name: 'Authorize'
       run: |
         echo username value ${{ secrets.USERNAME }}
-        sfdx force:auth:jwt:grant --clientid=${{ secrets.CONSUMER_KEY }} --username=${{ secrets.USERNAME }} --jwtkeyfile server.key --setdefaultdevhubusername --setalias=hub-org
+        sfdx org login jwt --client-id ${{ secrets.CONSUMER_KEY }} --jwt-key-file server.key --username ${{ secrets.USERNAME }} --alias hub-org
     - name: 'Convert Metadata'
       run: sfdx force:source:convert --rootdir=force-app --outputdir=convert
     - name: 'Run Test on Metadata'
-      run: sfdx force:mdapi:deploy --deploydir=convert --testlevel=RunLocalTests --checkonly -u hub-org    
+      run: sfdx force:mdapi:deploy --deploydir=convert --testlevel=RunLocalTests --checkonly -u hub-org 
