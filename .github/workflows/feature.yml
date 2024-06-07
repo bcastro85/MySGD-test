@@ -16,7 +16,7 @@ jobs:
           fetch-depth: 0
     - uses: actions/setup-node@v1
       with:
-        node-version: '14.6.0'
+        node-version: '16.6.0'
 
     - name: Install SFDX & SFDX Git Delta
       run: |
@@ -28,7 +28,7 @@ jobs:
         node_modules/sfdx-cli/bin/run sgd:source:delta --to "HEAD" --from $(git merge-base HEAD origin/master) --output . -i .gitignore
         echo "--- package.xml generated with added and modified metadata ---"
         cat package/package.xml
-        
+
     - name: Authentication
       run: |
         openssl enc -nosalt -aes-256-cbc -d -in assets/server.key.enc -out server.key -base64 -K ${{secrets.DECRYPTION_KEY}} -iv ${{secrets.DECRYPTION_IV}}
