@@ -1,45 +1,41 @@
-# This is a basic workflow to help you get started with Actions
+name: CI-Deployment
 
-name: CI
-
-# Controls when the action will run. Triggers the workflow on push or pull request
-# events but only for the master branch
+# Controls when the action will run. 
 on:
+  # Triggers the workflow on push or pull request events but only for the master branch
   push:
     branches: [ feature ]
-    paths:
-      - 'force-app/**'
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
   build:
-    # The type of runner that the job will run on
     runs-on: ubuntu-latest
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
+      with:
+        ref: master
+        # Fetch all history commit
+        fetch-depth: 0
+    - uses: actions/setup-node@v1
+      with:
+        node-version: '14.6.0'
 
-    # Runs a single command using the runners shell
-    - name: 'Build and Deploy'
+    - name: Install SFDX & SFDX Git Delta
       run: |
-        wget https://developer.salesforce.com/media/salesforce-cli/sfdx/channels/stable/sfdx-linux-x64.tar.xz
-        sudo mkdir ~/sfdx-cli
-        sudo tar xJf sfdx-linux-x64.tar.xz -C ~/sfdx-cli --strip-components 1
-        export PATH=$PATH:~/sfdx-cli/bin
-        echo "~/sfdx-cli/bin" >> $GITHUB_PATH
-        sudo chmod -R 777 ~/sfdx-cli
-        sfdx --version
- # Runs a set of commands using the runners shell
-    - name: 'Decrypt file'
-      run: openssl enc -nosalt -aes-256-cbc -d -in assets/server.key.enc -out server.key -base64 -K ${{secrets.DECRYPTION_KEY}} -iv ${{secrets.DECRYPTION_IV}}
-    - name: 'Authorize'
+        npm install sfdx-cli
+        echo y | node_modules/sfdx-cli/bin/run plugins:install sfdx-git-delta
+
+    - name: Generate package.xml
       run: |
-        echo username value ${{ secrets.USERNAME }}
-        sfdx org login jwt --client-id ${{ secrets.CONSUMER_KEY }} --jwt-key-file server.key --username ${{ secrets.USERNAME }} --alias hub-org
-    - name: 'Convert Metadata'
-      run: sfdx force:source:convert --rootdir=force-app --outputdir=convert
-    - name: 'Run Test on Metadata'
-      run: sfdx force:mdapi:deploy --deploydir=convert --testlevel=RunLocalTests -u hub-org
+        #Generate package.xml between the current branch & 
+        node_modules/sfdx-cli/bin/run sgd:source:delta --to "HEAD" --from "HEAD^" --output .
+        echo "--- package.xml generated with added and modified metadata ---"
+        cat package/package.xml
+
+    - name: Authentication
+      run: |
+        openssl enc -nosalt -aes-256-cbc -d -in assets/server.key.enc -out server.key -base64 -K ${{secrets.DECRYPTION_KEY}} -iv ${{secrets.DECRYPTION_IV}}
+        node_modules/sfdx-cli/bin/run auth:jwt:grant --clientid ${{ secrets.CONSUMER_KEY }} --jwtkeyfile server.key --username ${{ secrets.USERNAME }} --setdefaultdevhubusername --setalias prod
+
+    - name: Deployement
+      run: |
+        node_modules/sfdx-cli/bin/run force:source:deploy -x package/package.xml -l RunLocalTests -u prod
