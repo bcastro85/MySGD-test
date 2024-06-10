@@ -31,10 +31,9 @@ jobs:
 
     - name: Generate package.xml
       run: |
-        #Generate package.xml between the current branch & 
-        sfdx sgd:source:delta --to "HEAD" --from "HEAD^" --output .
-        echo "--- package.xml generated with added and modified metadata ---"
-        cat package/package.xml
+        #Generate package.xml between the current branch &
+        mkdir changed-sources
+        sfdx sgd:source:delta --to "HEAD" --from "HEAD^" --output changed-sources/ --generate-delta --source force-app/ 
 
     - name: Authentication
       run: |
