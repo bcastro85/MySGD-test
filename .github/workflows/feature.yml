@@ -30,7 +30,7 @@ jobs:
     - name: Generate package.xml
       run: |
         #Generate package.xml between the current branch &
-        sfdx sgd:source:delta --output ./ --source=force-app/ --to HEAD --from ${{env.commit}} 
+        sgd:source:delta --to "HEAD" --from $(git merge-base HEAD origin/feature) --output . -i .gitignore
         echo "--- package.xml generated with added and modified metadata ---"
         cat package/package.xml
 
