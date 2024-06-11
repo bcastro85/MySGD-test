@@ -32,9 +32,10 @@ jobs:
     - name: Generate package.xml
       run: |
         #Generate package.xml between the current branch & 
-        sfdx sgd:source:delta --to "HEAD" --from "HEAD^" --output .
+        mkdir delta
+        sfdx sgd:source:delta --to "HEAD" --from "HEAD~1" --output "./delta" --ignore-whitespace -d -i .sgdignore
         echo "--- package.xml generated with added and modified metadata ---"
-        cat package/package.xml
+        cat delta/package/package.xml
 
     - name: Authentication
       run: |
@@ -43,4 +44,4 @@ jobs:
 
     - name: Deployement
       run: |
-       sfdx force:source:deploy -x package/package.xml -l RunLocalTests -u prod
+       sfdx force:source:deploy -x delta/package/package.xml -l RunLocalTests -u prod

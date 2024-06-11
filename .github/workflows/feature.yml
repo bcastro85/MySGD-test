@@ -29,10 +29,11 @@ jobs:
         sfdx --version
     - name: Generate package.xml
       run: |
-        #Generate package.xml between the current branch & 
-        sfdx sgd:source:delta --to "HEAD" --from $(git merge-base HEAD origin/feature) --output . -i .gitignore
+        #Generate package.xml between the current branch &
+        mkdir delta
+        sfdx sgd:source:delta --to "HEAD" --from "HEAD~1" --output "./delta" --ignore-whitespace -d -i .sgdignore
         echo "--- package.xml generated with added and modified metadata ---"
-        cat package/package.xml
+        cat delta/package/package.xml
 
     - name: Authentication
       run: |
@@ -41,4 +42,4 @@ jobs:
 
     - name: Deployment 
       run: |
-        sfdx force:source:deploy -x package/package.xml -l RunLocalTests -u prod -c
+        sfdx force:source:deploy -x delta/package/package.xml -l RunLocalTests -u prod -c
