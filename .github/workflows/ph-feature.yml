@@ -42,4 +42,4 @@ jobs:
 
     - name: Deployement
       run: |
-        sfdx force:source:deploy -x package/package.xml -l RunLocalTests -u prod
+        sfdx force:source:deploy -p force-app -l RunLocalTests -u prod
