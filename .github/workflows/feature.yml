@@ -16,7 +16,7 @@ jobs:
           fetch-depth: 0
     - uses: actions/setup-node@v1
       with:
-        node-version: '16.6.0'
+        node-version: '14.6.0'
 
     - name: Install SFDX & SFDX Git Delta
       run: |
@@ -30,10 +30,9 @@ jobs:
     - name: Generate package.xml
       run: |
         #Generate package.xml between the current branch &
-        mkdir delta
-        sfdx sgd:source:delta --to "HEAD" --from "HEAD~1" --output "./delta" --ignore-whitespace -d -i .sgdignore
+        sgd:source:delta --to "HEAD" --from $(git merge-base HEAD origin/feature) --output . -i .gitignore
         echo "--- package.xml generated with added and modified metadata ---"
-        cat delta/package/package.xml
+        cat package/package.xml
 
     - name: Authentication
       run: |
@@ -42,4 +41,4 @@ jobs:
 
     - name: Deployment 
       run: |
-        sfdx force:source:deploy -x delta/package/package.xml -l RunLocalTests -u prod -c
+        sfdx force:source:deploy -x package/package.xml -l RunLocalTests -u prod -c
