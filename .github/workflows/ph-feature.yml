@@ -29,13 +29,6 @@ jobs:
         sudo chmod -R 777 ~/sfdx-cli
         sfdx --version
 
-    - name: Generate package.xml
-      run: |
-        #Generate package.xml between the current branch & 
-        sfdx sgd:source:delta --output ./ --source=force-app/ --to HEAD --from ${{env.commit}} 
-        echo "--- package.xml generated with added and modified metadata ---"
-        cat package/package.xml
-
     - name: Authentication
       run: |
         openssl enc -nosalt -aes-256-cbc -d -in assets/server.key.enc -out server.key -base64 -K ${{secrets.DECRYPTION_KEY}} -iv ${{secrets.DECRYPTION_IV}}
@@ -43,4 +36,4 @@ jobs:
 
     - name: Deployement
       run: |
-       sfdx force:source:deploy -x package/package.xml -l RunLocalTests -u prod
+       sfdx force:source:deploy -x force-app/main/default/objects/Account/fields/Text_bcv__c.field-meta.xml -l RunLocalTests -u prod
