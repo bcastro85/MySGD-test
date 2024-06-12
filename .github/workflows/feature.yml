@@ -41,4 +41,4 @@ jobs:
 
     - name: Deployment 
       run: |
-        sfdx force:source:deploy -x package/package.xml -l RunLocalTests -u prod -c
+        sfdx force:source:deploy -x ./packages/package/package.xml -l RunLocalTests -u prod -c
