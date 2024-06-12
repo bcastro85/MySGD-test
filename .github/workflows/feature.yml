@@ -30,7 +30,7 @@ jobs:
     - name: Generate package.xml
       run: |
         #Generate package.xml between the current branch
-        sgd:source:delta --to "HEAD" --from $(git merge-base HEAD origin/feature) --output . -i .gitignore
+        sgd:source:delta --to b75b53457e217e2ff2c98a14ddc873a9c51a86c8 --from 97e8069ad1777f9f3d0498078bb1a8b0b9d5ba15 --output . -i .gitignore
         echo "--- package.xml generated with added and modified metadata ---"
         cat package/package.xml
         
