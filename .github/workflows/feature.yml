@@ -32,7 +32,7 @@ jobs:
         #Generate package.xml between the current branch 
         sf sgd:source:delta -f "HEAD^" --output . -i .gitignore
         echo "--- package.xml generated with added and modified metadata ---"
-        cat package/package.xml
+        cat ./packages/package/package.xml
         
     - name: Authentication
       run: |
