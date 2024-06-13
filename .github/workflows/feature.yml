@@ -28,7 +28,7 @@ jobs:
         sfdx --version
     - name: Generate package.xml
       run: |
-        git fetch origin "+refs/heads/*:refs/remotes/origin/*"
+        sf apex run test -t "TemperatureConverterTest.testFreezingPoint" -r human
         #Generate package.xml between the current branch
         sfdx sgd:source:delta --to "HEAD" --from "HEAD^" --output "."
         echo "--- package.xml generated with added and modified metadata ---"
