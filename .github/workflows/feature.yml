@@ -49,12 +49,12 @@ jobs:
 
       - name: Authenticate Salesforce ORG
         run: |
-          sfdx auth:jwt:grant --clientid ${{ secrets.CONSUMER_KEY }} --jwtkeyfile server.key --username  ${{ secrets.USERNAME }} --setdefaultdevhubusername --setalias prod
+          sfdx auth:jwt:grant --clientid ${{ secrets.CONSUMER_KEY }} --jwtkeyfile server.key --username  ${{ secrets.USERNAME }} --setdefaultdevhubusername --setalias HubOrg
 
       - name: Generate the package.xml for delta files
         run: |
           mkdir delta
-          sfdx sgd:source:delta --to "HEAD" --from "HEAD~1" --output "./delta" --ignore-whitespace -d -i .sgdignore
+          sfdx sgd:source:delta --to "HEAD" --from "HEAD~1" --output "./delta" --ignore-whitespace -d -i
           echo "--- package.xml generated with added and modified metadata ---"
           cat delta/package/package.xml
       
