@@ -28,6 +28,7 @@ jobs:
         sfdx --version
     - name: Generate package.xml
       run: |
+        git fetch origin "+refs/heads/*:refs/remotes/origin/*"
         #Generate package.xml between the current branch
         sfdx sgd:source:delta --to "HEAD" --from "HEAD~1" --output . --ignore-whitespace -d -i .sgdignore
         echo "--- package.xml generated with added and modified metadata ---"
