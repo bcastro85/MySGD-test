@@ -29,7 +29,7 @@ jobs:
     - name: Generate package.xml
       run: |
         #Generate package.xml between the current branch
-        sf sgd:source:delta --to "HEAD" --from "HEAD~1" --output .
+        sfdx sgd:source:delta --to "HEAD" --from "HEAD~1" --output . --ignore-whitespace -d -i .sgdignore
         echo "--- package.xml generated with added and modified metadata ---"
         cat package/package.xml
         
