@@ -1,43 +1,66 @@
-name: CI-Validation
-# Controls when the action will run.
-on:
-  # Triggers the workflow on push or pull request events but only for the master branch
+name: Production Pipeline
+run-name: ${{ github.actor }} is running pipeline on ${{ github.repository }}
+on: 
   push:
-    branches: [ feature ]
-
+    branches:
+      - feature
+    paths:
+      - 'force-app/**'
+      
 jobs:
-  build:
+  Explore-GitHub-Actions:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-      with:
-          # Fetch all history commit
+      - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "🐧 This job is now running on a ${{ runner.os }} server hosted by GitHub!"
+      - run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
+      - name: Check out repository code
+        uses: actions/checkout@v3
+
+      - run: echo "💡 The ${{ github.repository }} repository has been cloned to the runner."
+      - run: echo "🖥️ The workflow is now ready to test your code on the runner."
+      - name: List files in the repository
+        run: |
+          ls ${{ github.workspace }}
+      - run: echo "🍏 This job's status is ${{ job.status }}."
+      
+  build:
+    runs-on: ubuntu-latest
+    environment: feature
+    steps:
+      # Checkout the Source code from the latest commit
+      - uses: actions/checkout@v3
+        with:
           fetch-depth: 0
-    - uses: actions/setup-node@v1
-      with:
-        node-version: '14.6.0'
+          
+      - name: Install NPM
+        run: |
+          npm install
+      # Install the SFDX CLI using npm command
+      - name: Install the SFDX CLI
+        run: |
+          npm install sfdx-cli --global
+          sfdx force --help
+          
+      - name: Install the sfdx-git-delta plugin
+        run: |
+          echo 'y' | sfdx plugins:install sfdx-git-delta
+          
+      - name: Decrypt the server.key.enc file & store inside assets folder
+        run: |
+          openssl enc -nosalt -aes-256-cbc -d -in assets/server.key.enc -out server.key -base64 -K ${{secrets.DECRYPTION_KEY}} -iv ${{secrets.DECRYPTION_IV}}
 
-    - name: Install SFDX & SFDX Git Delta
-      run: |
-        wget https://developer.salesforce.com/media/salesforce-cli/sfdx/channels/stable/sfdx-linux-x64.tar.xz
-        sudo mkdir ~/sfdx-cli
-        sudo tar xJf sfdx-linux-x64.tar.xz -C ~/sfdx-cli --strip-components 1
-        export PATH=$PATH:~/sfdx-cli/bin
-        echo "~/sfdx-cli/bin" >> $GITHUB_PATH
-        sudo chmod -R 777 ~/sfdx-cli
-        sfdx --version
-    - name: Authentication
-      run: |
-        openssl enc -nosalt -aes-256-cbc -d -in assets/server.key.enc -out server.key -base64 -K ${{secrets.DECRYPTION_KEY}} -iv ${{secrets.DECRYPTION_IV}}
-        sfdx auth:jwt:grant --clientid ${{ secrets.CONSUMER_KEY }} --jwtkeyfile server.key --username  ${{ secrets.USERNAME }} --setdefaultdevhubusername --setalias prod
+      - name: Authenticate Salesforce ORG
+        run: |
+          sfdx auth:jwt:grant --clientid ${{ secrets.CONSUMER_KEY }} --jwtkeyfile server.key --username  ${{ secrets.USERNAME }} --setdefaultdevhubusername --setalias prod
 
-    - name: Generate package.xml
-      run: |
-        #Generate package.xml between the current branch
-        sfdx sgd:source:delta --to "HEAD" --from "HEAD^" --output "."
-        echo "--- package.xml generated with added and modified metadata ---"
-        cat package/package.xml
-        
-    - name: Deployment 
-      run: |
-        sfdx force:source:deploy -x package/package.xml -l RunLocalTests -u prod -c
+      - name: Generate the package.xml for delta files
+        run: |
+          mkdir delta
+          sfdx sgd:source:delta --to "HEAD" --from "HEAD~1" --output "./delta" --ignore-whitespace -d -i .sgdignore
+          echo "--- package.xml generated with added and modified metadata ---"
+          cat delta/package/package.xml
+      
+      - name: Deploy Delta components to Salesofrce
+        run: |
+          sfdx force:source:deploy -x delta/package/package.xml -c -l RunLocalTests -u HubOrg
