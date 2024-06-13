@@ -60,4 +60,4 @@ jobs:
       
       - name: Deploy Delta components to Salesofrce
         run: |
-          sfdx force:source:deploy -x delta/package/package.xml -c -l
+          sfdx force:source:deploy -x delta/package/package.xml -c -l RunLocalTests -u HubOrg 
